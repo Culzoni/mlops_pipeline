@@ -5,11 +5,11 @@ import os
 # Configuración visual de la página
 st.set_page_config(page_title="Dashboard MLOps - Avance 3", layout="wide")
 
-st.title("🚀 Pipeline de MLOps - Panel de Control e Interfaz")
+st.title(" Pipeline de MLOps - Panel de Control e Interfaz")
 st.write("Proyecto Integrador - Entrega de Monitoreo y Modelado")
 
 # Creamos dos pestañas bien claras para la evaluación
-tab1, tab2 = st.tabs(["📊 Monitoreo de Data Drift", "🔮 Simulador de Predicciones"])
+tab1, tab2 = st.tabs(["Monitoreo de Data Drift", "Simulador de Predicciones"])
 
 with tab1:
     st.header("Análisis Estadístico de Estabilidad (Data Drift)")
@@ -26,7 +26,7 @@ with tab1:
         # Renderizar el HTML de forma interactiva dentro de Streamlit
         components.html(html_content, height=750, scrolling=True)
     else:
-        st.error("⚠️ No se encontró el reporte en 'src/reporte_data_drift.html'.")
+        st.error(" No se encontró el reporte en 'src/reporte_data_drift.html'.")
         st.info("Por favor, ejecuta en tu terminal: 'python detectar_drift.py' para generarlo primero.")
 
 with tab2:
@@ -41,7 +41,7 @@ with tab2:
         val_2 = st.slider("Selecciona un rango de control:", 0, 100, 50)
         
         enviar = st.form_submit_button("Ejecutar Modelo Predictivo")
-        
+                
         if enviar:
             st.success("¡Pipeline de inferencia ejecutado!")
-            st.metric(label="Resultado Esperado", value="Simulación Correcta ✅")
+            st.metric(label="Resultado Esperado", value="Simulación Correcta")
