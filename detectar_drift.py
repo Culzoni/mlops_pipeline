@@ -10,13 +10,13 @@ def generar_reporte_drift():
         print(f"Error: No se encontró el archivo {ruta_datos}")
         return
 
-    # 1. Cargar el dataset completo
+    # Cargar el dataset 
     df = pd.read_csv(ruta_datos)
     
     # Seleccionar solo columnas numéricas para el análisis estadístico
     columnas_numericas = df.select_dtypes(include=['int64', 'float64']).columns
     
-    # 2. Dividir a la mitad para simular (Entrenamiento vs Producción)
+    #  Dividir a la mitad para simular (Entrenamiento vs Producción)
     mitad = len(df) // 2
     df_referencia = df.iloc[:mitad]
     df_actual = df.iloc[mitad:]
@@ -24,7 +24,7 @@ def generar_reporte_drift():
     columnas_con_drift = 0
     filas_html_columnas = ""
 
-    # 3. Calcular el Drift feature por feature usando Kolmogorov-Smirnov
+    #  Calcular el Drift feature por feature usando Kolmogorov-Smirnov
     for col in columnas_numericas:
         # Extraer distribuciones
         dist_ref = df_referencia[col].dropna()
@@ -36,7 +36,7 @@ def generar_reporte_drift():
             
             # Si el p-value es menor a 0.05, la distribución cambió significativamente (Drift)
             tiene_drift = p_value < 0.05
-            status_text = "⚠️ Drift Detectado" if tiene_drift else "✅ Estable"
+            status_text = " Drift Detectado" if tiene_drift else "Estable"
             status_class = "drift" if tiene_drift else "no-drift"
             
             if tiene_drift:
@@ -50,12 +50,12 @@ def generar_reporte_drift():
             </tr>
             """
 
-    # 4. Determinar estado global del dataset (si más del 20% de las columnas cambiaron)
+    # Determinar estado global del dataset (si más del 20% de las columnas cambiaron)
     total_columnas = len(columnas_numericas)
     porcentaje_drift = (columnas_con_drift / total_columnas) if total_columnas > 0 else 0
     dataset_drift = porcentaje_drift > 0.20
 
-    # 5. Armar el diseño HTML interactivo para tu aplicación
+    # Armar el diseño HTML interactivo para tu aplicación
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -79,10 +79,10 @@ def generar_reporte_drift():
     </head>
     <body>
         <div class="card">
-            <h2>📊 Reporte de Monitoreo - Data Drift</h2>
+            <h2>Reporte de Monitoreo - Data Drift</h2>
             
             <div class="global-status {'drift' if dataset_drift else 'no-drift'}">
-                { "⚠️ ALERTA: EL DATASET GLOBAL TIENE DRIFT (MÁS DEL 20% DE COLUMNAS ALTERADAS)" if dataset_drift else "✅ PIPELINE ESTABLE: DATASET DENTRO DE LOS PARÁMETROS NORMALES" }
+                { "ALERTA: EL DATASET GLOBAL TIENE DRIFT (MÁS DEL 20% DE COLUMNAS ALTERADAS)" if dataset_drift else "✅ PIPELINE ESTABLE: DATASET DENTRO DE LOS PARÁMETROS NORMALES" }
             </div>
 
             <div class="grid">
@@ -109,7 +109,7 @@ def generar_reporte_drift():
     </html>
     """
 
-    # 6. Crear la carpeta src y guardar el archivo HTML nativamente
+    # Crear la carpeta src y guardar el archivo HTML nativamente
     if not os.path.exists("src"):
         os.makedirs("src")
         
@@ -117,7 +117,7 @@ def generar_reporte_drift():
     with open(ruta_reporte, "w", encoding="utf-8") as f:
         f.write(html_content)
     
-    print(f"✅ ¡ÉXITO TOTAL! Reporte generado en: {ruta_reporte}")
+    print(f"Reporte generado en: {ruta_reporte}")
 
 if __name__ == "__main__":
     generar_reporte_drift()
