@@ -58,3 +58,42 @@ Ventana de Predicciones : Un simulador en tiempo real para interactuar con los p
     '''bash
     pyython -m streamlit run app.py
     '''
+
+-----------------------------------------------------------------------------------------------------
+Avance 4: Despliegue en Produccion y API Rest (MLOps)
+
+En esta parte final del proyecto integrador, la arquitectura del sistema escalo hacia un entorno de produccion real. 
+
+# Servidor con FastAPI (`src/model_deploy.py`)
+En lugar de procesar los datos de manera local en la interfaz, se contruyo una API Rest utilizando **FastAPI** y el servidor **Uvicorn** para exponer el modelo de *CustomerChurnX*:
+- **(`GET/`)**: Endpoint de control que verifica el estado online del servidor.
+- **(POST /predict`)**: Recibe estructuras validadas mediante modelos de **Pydantic** basadas en la base de datos (`age`, `tenure_months`, `sessions_week`, `avg_session_min`, etc.). Ejecuta la lógica de negocio y retorna la clasificación y el score calculado.
+
+# Streamlit (`app.py`)
+La aplicacion web fue reestructurada por completo para actuar como cliente:
+- Al accionar el formulario, se recopila los parametros ingresados  por el usuario y los transmite mediante HTTP `POST` (libreria `requests`).
+
+# Docker (`Dockerfile`) 
+Para asegurar la portabilidad del pipelie y eviar conflictos de dependencias entre sistemas operativos, se configuro un **Dockerfile**:
+- Levanta una imagen base ligera de Python 3.12-slim.
+- Instala automaticamente los requerimientos en `requirements.txt`.
+- Expone los puertos nativos: `8000` (FastAPI) y `8501` (Streamlit).
+
+# Credito Extra: Integracion de CI/CD con SonarCloud
+Se implemento un flujo automatizado de integracion utilizando **GitHub Actions** (`.github/workflows/sonarcloud.yml`):
+- Cada confirmacion de codigo (*push*) en la rama `developer` ejecuta un escaneo estatico del repositorio.
+- Evalua de forma estricta la calidad, la duplicacion de lineas, vulnerabilidades de seguridad y legibilidad, reportando los resultados en la plataforma **SonarCloud**.
+
+Guia para la ejecucion rapida
+
+**Encender en Servidor de la API :**
+```bash
+python src/model_deploy.py
+```
+*Acceso a documentación:* `http://localhost:8000/docs`
+
+**Lanzar la interfaz grafica:**
+```bash
+python -m streamlit run app.py
+```
+*Acceso a la web:* `http://localhost:8501`
