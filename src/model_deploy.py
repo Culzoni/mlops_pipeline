@@ -1,45 +1,72 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import uvicorn 
-
-# Inicializamos la app de FastAPI 
+import uvicorn
+import joblib
+import pandas as pd
+import os
 
 app = FastAPI(
-    title="API de prediccion - MLOps Pipeline", 
-    description="Servicio para exponer el modelo de Data Science",
-    version ="1.0.0"
-    )
+    title="CustomerChurnx - API de Producción Real",
+    description="Servidor backend oficial conectado al modelo entrenado de Regresión Logística",
+    version="2.0.0"
+)
 
-# Definimos la estructura de datos que recibira la API 
-# Modificamos las variables segun las columnas reales de tu dataset
-class ClienteInput(BaseModel):
-    age: int
-    tenure_months: int
-    sessions_week: int
-    avg_session_min: float
-    notif_click_rate: float
-    support_tickets_3m: int
-    discount_pct_3m: float
-    late_payment_6m: int
-    auto_renew: int 
-    
+RUTA_MODELO = "src/src/modelo_churn.pkl"
+RUTA_COLUMNAS = "src/src/columnas_modelo.pkl"
+
+if os.path.exists(RUTA_MODELO) and os.path.exists(RUTA_COLUMNAS):
+    modelo = joblib.load(RUTA_MODELO)
+    columnas_entrenamiento = joblib.load(RUTA_COLUMNAS)
+    print(" ¡Éxito! Modelo y columnas de entrenamiento cargados correctamente desde el disco.")
+else:
+    modelo = None
+    columnas_entrenamiento = []
+    print(" Alerta: No se encontraron los archivos .pkl en la ruta 'src/'. Ejecute su notebook primero.")
+class ClienteData(BaseModel):
+    datos_cliente: dict
+
 @app.get("/")
 def home():
-    return {"mensaje": "CustomerChurnx - API levantada con exito."}
+    status = "Online" if modelo is not  None else "Falta Cargar Modelo"
+    return {
+        "status": status, 
+        "proyecto": "CustomerChurnx - Producción", 
+        "modelo_detectado": str(type(modelo))
+    }
 
 @app.post("/predict")
-def predict(data: ClienteInput):  
-    input_dict = data.dict()
+def predict(payload: ClienteData):
+    if modelo is None:
+        return {"error": "El servidor no tiene un modelo entrenado cargado en memoria."}
+        
+   
+    input_dict = payload.datos_cliente
     
-
-    score_riesgo = (input_dict['support_tickets_3m'] * 1.5) + (input_dict['late_payments_6m'] * 2.0) - (input_dict['tenure_months'] * 0.1)   
-
-    prediccion_final = 1 if score_riesgo > 2.0 else 0
+    
+    df_usuario = pd.DataFrame([input_dict])
+    
+    
+    df_usuario_dummies = pd.get_dummies(df_usuario)
+    
+    df_final = pd.DataFrame(columns=columnas_entrenamiento)
+    df_final = pd.concat([df_final, df_usuario_dummies], ignore_index=True)
+    df_final = df_final.fillna(0)
+    
+    df_final = df_final[columnas_entrenamiento]
+    
+    
+    prediccion = modelo.predict(df_final)[0]
+    
+    try:
+        probabilidades = modelo.predict_proba(df_final)[0]
+        score_riesgo = probabilidades[1]  
+    except:
+        score_riesgo = 0.50
 
     return {
-        "churn_prediction": prediccion_final,
-        "score_calculado": round(score_riesgo, 2),
-        "mensaje": "Analisis predictivo de retencion completado."
+        "churn_prediction": int(prediccion),
+        "score_calculado": round(float(score_riesgo * 100), 2),
+        "mensaje": "Inferencia de Machine Learning ejecutada con éxito en el backend real."
     }
 
 if __name__ == "__main__":
