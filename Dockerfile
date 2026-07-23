@@ -16,4 +16,4 @@ COPY . .
 EXPOSE 8000
 EXPOSE 8501
 
-CMD ["sh", "-c", "python src/model_deploy.py & python -m streamlit run app.py --server.port=8501 --server.address=0.0.0.0"]
+CMD ["sh", "-c", "python src/model_deploy.py & python -m streamlit run app.py --server.port=8501 --server.address=0.0.0.0 & wait"]
